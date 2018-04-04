@@ -146,6 +146,14 @@ namespace Moments
 
 		#region Public API
 
+		public void Setup(Camera camera, bool autoAspect, int width, int height, int fps, float bufferSize, int repeat, int quality, int framesPerColorSample)
+		{
+			if (camera)
+				m_Camera = camera;
+			
+			Setup(autoAspect, width, height, fps, bufferSize, repeat, quality, framesPerColorSample);
+		}
+
 		/// <summary>
 		/// Initializes the component. Use this if you need to change the recorder settings in a script.
 		/// This will flush the previously saved frames as settings can't be changed while recording.
