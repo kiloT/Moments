@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2015 Thomas Hourdel
  *
  * This software is provided 'as-is', without any express or implied
@@ -30,6 +30,7 @@ namespace MomentsEditor
 	[CustomEditor(typeof(Recorder))]
 	public sealed class RecorderEditor : Editor
 	{
+		SerializedProperty m_Camera;
 		SerializedProperty m_AutoAspect;
 		SerializedProperty m_Width;
 		SerializedProperty m_Height;
@@ -42,6 +43,7 @@ namespace MomentsEditor
 
 		void OnEnable()
 		{
+			m_Camera = serializedObject.FindProperty("m_Camera");
 			m_AutoAspect = serializedObject.FindProperty("m_AutoAspect");
 			m_Width = serializedObject.FindProperty("m_Width");
 			m_Height = serializedObject.FindProperty("m_Height");
@@ -66,6 +68,7 @@ namespace MomentsEditor
 			serializedObject.Update();
 
 			// Hooray for propertie drawers !
+			EditorGUILayout.PropertyField(m_Camera, new GUIContent("Camera", "Camera to git from."));
 			EditorGUILayout.PropertyField(m_AutoAspect, new GUIContent("Automatic Height", "Automatically compute height from the current aspect ratio."));
 			EditorGUILayout.PropertyField(m_Width, new GUIContent("Width", "Output gif width in pixels."));
 
@@ -85,6 +88,7 @@ namespace MomentsEditor
 
 			GUI.enabled = true;
 
+			recorder.ComputeCamera();
 			recorder.ComputeHeight();
 			EditorGUILayout.LabelField("Estimated VRam Usage", recorder.EstimatedMemoryUse.ToString("F3") + " MB");
 		}
