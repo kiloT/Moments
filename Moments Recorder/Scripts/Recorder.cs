@@ -134,6 +134,7 @@ namespace Moments
 		int m_MaxFrameCount;
 		float m_Time;
 		float m_TimePerFrame;
+		float m_AbsoluteTime;
 		Queue<RenderTexture> m_Frames;
 		RenderTexture m_RecycledRenderTexture;
 		ReflectionUtils<Recorder> m_ReflectionUtils;
@@ -213,6 +214,8 @@ namespace Moments
 			}
 
 			State = RecorderState.Recording;
+			m_Time = 0f;
+			m_AbsoluteTime = 0f;
 		}
 
 		/// <summary>
@@ -295,7 +298,12 @@ namespace Moments
 		{
 			FlushMemory();
 		}
+		
 
+		
+		public System.Action<float> OnUpdateTime;
+		
+		float m_LastTime;
 		void OnRenderImage(RenderTexture source, RenderTexture destination)
 		{
 			if (State != RecorderState.Recording)
@@ -303,21 +311,34 @@ namespace Moments
 				Graphics.Blit(source, destination);
 				return;
 			}
-
-			m_Time += Time.unscaledDeltaTime;
-
+			if (m_LastTime == 0) {
+				m_LastTime = Time.time;
+			}
+			
+			float deltaTime = Time.time - m_LastTime;
+			
+			m_LastTime = Time.time;
+			
+			m_Time += deltaTime;
+			
+			
 			if (m_Time >= m_TimePerFrame)
 			{
+				m_AbsoluteTime += m_TimePerFrame;
 				// Limit the amount of frames stored in memory
 				if (m_Frames.Count >= m_MaxFrameCount)
 					m_RecycledRenderTexture = m_Frames.Dequeue();
-
+				
+				if (OnUpdateTime != null) {
+					OnUpdateTime(m_AbsoluteTime);
+				}
+				
 				m_Time -= m_TimePerFrame;
-
+				
 				// Frame data
 				RenderTexture rt = m_RecycledRenderTexture;
 				m_RecycledRenderTexture = null;
-
+				
 				if (rt == null)
 				{
 					rt = new RenderTexture(m_Width, m_Height, 0, RenderTextureFormat.ARGB32);
@@ -325,14 +346,14 @@ namespace Moments
 					rt.filterMode = FilterMode.Bilinear;
 					rt.anisoLevel = 0;
 				}
-
+				
 				Graphics.Blit(source, rt);
 				m_Frames.Enqueue(rt);
 			}
-
+			
 			Graphics.Blit(source, destination);
 		}
-
+		
 		#endregion
 
 		#region Methods
