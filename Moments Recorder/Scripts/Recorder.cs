@@ -391,6 +391,7 @@ namespace Moments
 		void Init()
 		{
 			State = RecorderState.Paused;
+			ComputeCamera();
 			ComputeHeight();
 			m_MaxFrameCount = Mathf.RoundToInt(m_BufferSize * m_FramePerSecond);
 			m_TimePerFrame = 1f / m_FramePerSecond;
@@ -413,6 +414,9 @@ namespace Moments
 				return;
 
 			m_Camera = GetComponent<Camera>();
+
+			if (!m_Camera)
+				m_Camera = Camera.main;
 		}
 		
 		// Automatically computes height from the current aspect ratio if auto aspect is set to true
