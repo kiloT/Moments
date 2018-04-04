@@ -21,16 +21,17 @@
  *    distribution.
  */
 
-using UnityEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using Moments.Encoder;
+using UnityEngine;
+using Object = UnityEngine.Object;
 using ThreadPriority = System.Threading.ThreadPriority;
 
 namespace Moments
 {
-	using UnityObject = UnityEngine.Object;
+	using UnityObject = Object;
 
 	public enum RecorderState
 	{
@@ -141,6 +142,7 @@ namespace Moments
 		Queue<RenderTexture> m_Frames;
 		RenderTexture m_RecycledRenderTexture;
 		ReflectionUtils<Recorder> m_ReflectionUtils;
+		RenderImageProxy m_renderImageProxy;
 
 		#endregion
 
@@ -167,7 +169,7 @@ namespace Moments
 		public void Setup(Camera camera, bool autoAspect, int width, int height, int fps, float bufferSize, int repeat, int quality, int framesPerColorSample)
 		{
 			if (camera)
-				m_Camera = camera;
+				SetupCamera(camera);
 			
 			Setup(autoAspect, width, height, fps, bufferSize, repeat, quality, framesPerColorSample);
 		}
@@ -330,7 +332,7 @@ namespace Moments
 		
 
 		
-		public System.Action<float> OnUpdateTime;
+		public Action<float> OnUpdateTime;
 		
 		float m_LastTime;
 		void OnRenderImage(RenderTexture source, RenderTexture destination)
@@ -413,10 +415,12 @@ namespace Moments
 			if (m_Camera)
 				return;
 
-			m_Camera = GetComponent<Camera>();
+			Camera newCamera = GetComponent<Camera>();
 
-			if (!m_Camera)
-				m_Camera = Camera.main;
+			if (!newCamera)
+				newCamera = Camera.main;
+
+			SetupCamera(newCamera);
 		}
 		
 		// Automatically computes height from the current aspect ratio if auto aspect is set to true
@@ -502,6 +506,22 @@ namespace Moments
 			RenderTexture.active = null;
 
 			return new GifFrame() { Width = target.width, Height = target.height, Data = target.GetPixels32() };
+		}
+
+		void SetupCamera(Camera newCamera)
+		{
+			if (m_renderImageProxy)
+			{
+				m_renderImageProxy.Callback.RemoveListener(OnRenderImage);
+				Destroy(m_renderImageProxy);
+			}
+
+			if (newCamera)
+			{
+				m_Camera = newCamera;
+				m_renderImageProxy = m_Camera.gameObject.AddComponent<RenderImageProxy>();
+				m_renderImageProxy.Callback.AddListener(OnRenderImage);
+			}
 		}
 
 		#endregion
