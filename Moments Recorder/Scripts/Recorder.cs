@@ -145,7 +145,25 @@ namespace Moments
 		#endregion
 
 		#region Public API
-
+		
+		/// <summary>
+		/// Initializes the component. Use this if you need to change the recorder settings in a script.
+		/// This will flush the previously saved frames as settings can't be changed while recording.
+		/// </summary>
+		/// <param name="camera">Camera to gif from</param>
+		/// <param name="autoAspect">Automatically compute height from the current aspect ratio</param>
+		/// <param name="width">Width in pixels</param>
+		/// <param name="height">Height in pixels</param>
+		/// <param name="fps">Recording FPS</param>
+		/// <param name="bufferSize">Maximum amount of seconds to record to memory</param>
+		/// <param name="repeat">-1: no repeat, 0: infinite, >0: repeat count</param>
+		/// <param name="quality">Quality of color quantization (conversion of images to the maximum
+		/// 256 colors allowed by the GIF specification). Lower values (minimum = 1) produce better
+		/// colors, but slow processing significantly. Higher values will speed up the quantization
+		/// pass at the cost of lower image quality (maximum = 100).</param>
+		/// <param name="framesPerColorSample">Sample every n-th frame in a recording for color
+		/// mapping purposes. If framesPerColorSample is set to 0, Moments uses its default behaviour
+		/// and creates a brand new color palette every frame.</param>
 		public void Setup(Camera camera, bool autoAspect, int width, int height, int fps, float bufferSize, int repeat, int quality, int framesPerColorSample)
 		{
 			if (camera)
