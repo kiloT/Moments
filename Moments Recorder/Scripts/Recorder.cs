@@ -40,7 +40,7 @@ namespace Moments
 	}
 
 	[AddComponentMenu("Miscellaneous/Moments Recorder")]
-	[RequireComponent(typeof(Camera)), DisallowMultipleComponent]
+	[DisallowMultipleComponent]
 	public sealed class Recorder : MonoBehaviour
 	{
 		#region Exposed fields
@@ -48,6 +48,9 @@ namespace Moments
 		// These fields aren't public, the user shouldn't modify them directly as they can't break
 		// everything if not used correctly. Use Setup() instead.
 
+		[SerializeField]
+		Camera m_Camera;
+		
 		[SerializeField, Min(8)]
 		int m_Width = 320;
 
@@ -378,13 +381,21 @@ namespace Moments
 			}
 		}
 
+		public void ComputeCamera()
+		{
+			if (m_Camera)
+				return;
+
+			m_Camera = GetComponent<Camera>();
+		}
+		
 		// Automatically computes height from the current aspect ratio if auto aspect is set to true
 		public void ComputeHeight()
 		{
 			if (!m_AutoAspect)
 				return;
 
-			m_Height = Mathf.RoundToInt(m_Width / GetComponent<Camera>().aspect);
+			m_Height = Mathf.RoundToInt(m_Width / m_Camera.aspect);
 		}
 
 		void Flush(UnityObject obj)
