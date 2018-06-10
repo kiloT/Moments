@@ -143,9 +143,17 @@ namespace Moments
 		float m_TimePerFrame;
 		float m_AbsoluteTime;
 		Queue<RenderTexture> m_Frames;
+
+		public Texture[] Frames
+		{
+			get { return m_Frames.ToArray(); }
+		}
+		
 		RenderTexture m_RecycledRenderTexture;
 		ReflectionUtils<Recorder> m_ReflectionUtils;
 		RenderImageProxy m_renderImageProxy;
+
+		private RenderTexture m_tempTexture;
 
 		#endregion
 
@@ -297,6 +305,9 @@ namespace Moments
 			if (m_RecycledRenderTexture != null)
 				Flush(m_RecycledRenderTexture);
 
+			if (m_tempTexture != null)
+				Flush(m_tempTexture);
+			
 			if (m_Frames == null)
 				return;
 
@@ -408,11 +419,56 @@ namespace Moments
 					rt.wrapMode = TextureWrapMode.Clamp;
 					rt.filterMode = FilterMode.Bilinear;
 					rt.anisoLevel = 0;
+					rt.Create();
 				}
 
 				if (m_Material)
 				{
-					Graphics.Blit(source, rt, m_Material);	
+					float scaleX = 1;
+					float scaleY = 1;
+
+					float width = m_Width;
+					float height = m_Height;
+
+					if (m_AutoAspect == false)
+					{
+						float koefX = (float) m_Width / source.width;
+						float koefY = (float) m_Height / source.height;
+
+						if (koefX > koefY)
+						{
+							width = source.width;
+							height /= koefX;
+							
+							scaleY = koefY / koefX;
+						}
+						else
+						{
+							height = source.height;
+							width /= koefY;
+							
+							scaleX = koefX / koefY;
+						}
+					}
+					
+					if (m_tempTexture == null)
+					{
+						m_tempTexture = new RenderTexture(m_Width, m_Height, 0, RenderTextureFormat.ARGB32);
+						m_tempTexture.wrapMode = TextureWrapMode.Clamp;
+						m_tempTexture.filterMode = FilterMode.Bilinear;
+						m_tempTexture.anisoLevel = 0;
+						m_tempTexture.Create();
+					}
+
+					Graphics.Blit(source, m_tempTexture,
+						new Vector2(
+							scaleX,
+							scaleY
+						),
+						new Vector2((source.width - width) / (2f * source.width), (source.height - height) / (2f * source.height))
+					);
+
+					Graphics.Blit(m_tempTexture, rt, m_Material);
 				}
 				else
 				{
